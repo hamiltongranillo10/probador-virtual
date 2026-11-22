@@ -294,11 +294,13 @@ $("newProd").onclick=()=>openProd(null);
 $("pfCancel").onclick=()=>{ $("prodForm").hidden=true; };
 $("pfImage").onchange=async e=>{
   const f=e.target.files[0]; if(!f) return;
-  // se reduce a 1600 px y se guarda en PNG para conservar la transparencia
+  // se reduce a 1600 px
   const img=new Image(); img.src=URL.createObjectURL(f); await img.decode();
   const k=Math.min(1,1600/Math.max(img.width,img.height));
   const c=el("canvas",{width:Math.round(img.width*k),height:Math.round(img.height*k)}); c.getContext("2d").drawImage(img,0,0,c.width,c.height);
-  imageData=c.toDataURL(f.type==="image/jpeg"?"image/jpeg":"image/png", .9);
+  // WebP pesa mucho menos y conserva la transparencia; si el navegador no lo genera, PNG o JPEG
+  const webp=c.toDataURL("image/webp",.86);
+  imageData=webp.startsWith("data:image/webp") ? webp : c.toDataURL(f.type==="image/jpeg"?"image/jpeg":"image/png", .9);
   $("pfPreview").src=imageData; $("pfPreview").hidden=false;
 };
 $("prodForm").onsubmit=async e=>{

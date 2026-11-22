@@ -39,6 +39,8 @@ function loadDb() {
     try { db.products = JSON.parse(fs.readFileSync(path.join(STATIC, "products.seed.json"), "utf8")); }
     catch { db.products = []; }
   }
+  // las fotos de ejemplo pasaron de PNG a WebP (pesan mucho menos)
+  for (const p of db.products) if (/^img\/[\w-]+\.png$/.test(p.src || "")) p.src = p.src.replace(/\.png$/, ".webp");
   return db;
 }
 function readLegacyKey() {
@@ -287,6 +289,8 @@ const adminRoutes = {
   },
 };
 
+// fotos en caché del navegador para que la tienda cargue rápido; las páginas siempre frescas
+const cacheFor = p => p.startsWith("/img/") ? "public, max-age=604800" : p.startsWith("/uploads/") ? "public, max-age=600" : "no-cache";
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://localhost");
   const key = `${req.method} ${url.pathname}`;
@@ -303,7 +307,7 @@ const server = http.createServer(async (req, res) => {
     if (!file.startsWith(base)) { res.writeHead(403); return res.end(); }
     fs.readFile(file, (err, buf) => {
       if (err) { res.writeHead(404); return res.end("No encontrado"); }
-      res.writeHead(200, { "Content-Type": TYPES[path.extname(file).toLowerCase()] || "application/octet-stream", "Cache-Control": "no-store" });
+      res.writeHead(200, { "Content-Type": TYPES[path.extname(file).toLowerCase()] || "application/octet-stream", "Cache-Control": cacheFor(p) });
       res.end(buf);
     });
   } catch (e) {

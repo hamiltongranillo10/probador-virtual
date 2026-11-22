@@ -6,6 +6,8 @@
 <meta name="theme-color" content="#15171c">
 <title>Hamilton Mostrador</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://api.decart.ai" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Inter:wght@400;500;600&display=swap">
 <style>
   /* Layout: ficha de producto a dos columnas; el probador en vivo ocupa toda la pantalla (también en celular) */
@@ -126,6 +128,17 @@
   .tool.alt{background:#1d1f26;color:#fff}
   .tool.stop{background:var(--live);color:#fff}
   #outfitBtn[aria-pressed="true"]{background:#fff;color:#111}
+  /* Celular en vertical: el video ocupa toda la pantalla y los controles flotan encima */
+  .studio.vertical{grid-template-rows:minmax(0,1fr);background:#000}
+  .studio.vertical>*{grid-row:1;grid-column:1}
+  .studio.vertical .stage{padding:0}
+  .studio.vertical .screen{border-radius:0;background:#000}
+  .studio.vertical .screen video{object-fit:cover}
+  .studio.vertical .studio-top{align-self:start;z-index:5;background:linear-gradient(rgba(0,0,0,.65),transparent);padding-bottom:28px}
+  .studio.vertical .studio-bottom{align-self:end;z-index:5;background:linear-gradient(transparent,rgba(0,0,0,.75) 35%);padding-top:36px}
+  .studio.vertical .live{top:calc(env(safe-area-inset-top) + 74px)}
+  .studio.vertical .status{bottom:auto;top:42%}
+  .studio.vertical .pip{inset:calc(env(safe-area-inset-top) + 74px) 10px auto auto!important;width:24%!important}
 </style>
 </head>
 <body>
@@ -404,6 +417,34 @@ $("logoutBtn").onclick=async()=>{ await api("/api/logout",{}); me=null; renderAc
 /* ---------- probador en vivo ---------- */
 let sdk=null, client=null, model=null, rt=null, camStream=null, consented=false, facing="user";
 let endAt=0, timer=null, wakeLock=null, portraitTried=false;
+let vertical=false, compose=null;
+const SDK_URL="https://cdn.jsdelivr.net/npm/@decartai/sdk@0.2.14/+esm";
+const loadSdk=()=>sdk ? Promise.resolve(sdk) : (window.__sdkP ??= import(SDK_URL).then(m=>sdk=m).catch(e=>{ window.__sdkP=null; throw e; }));
+
+/* Decart genera video horizontal (1280x720). En celular vertical mandamos la cámara
+   centrada en un cuadro horizontal y mostramos solo esa franja central, a pantalla completa. */
+function verticalStream(src, W, H){
+  const box=$("screen").getBoundingClientRect();
+  const ar=Math.min(1, (box.width||innerWidth)/(box.height||innerHeight));
+  const sw=Math.round(H*ar/2)*2, sx=Math.round((W-sw)/2);
+  const c=document.createElement("canvas"); c.width=W; c.height=H;
+  const x=c.getContext("2d",{alpha:false});
+  x.fillStyle="#7f7f7f"; x.fillRect(0,0,W,H);
+  let on=true;
+  const draw=()=>{
+    if(!on) return;
+    const vw=src.videoWidth, vh=src.videoHeight;
+    if(vw&&vh){
+      const k=Math.max(sw/vw,H/vh), dw=vw*k, dh=vh*k;
+      x.save(); x.beginPath(); x.rect(sx,0,sw,H); x.clip();
+      x.drawImage(src, sx+(sw-dw)/2, (H-dh)/2, dw, dh); x.restore();
+    }
+    src.requestVideoFrameCallback ? src.requestVideoFrameCallback(draw) : requestAnimationFrame(draw);
+  };
+  draw();
+  const stream=c.captureStream(30);
+  return { stream, sx, sw, W, stop(){ on=false; stream.getTracks().forEach(t=>t.stop()); } };
+}
 const status = t => { $("status").textContent=t||""; $("status").hidden=!t; };
 const show = (id,on) => { $(id).hidden=!on; };
 
@@ -453,23 +494,29 @@ async function getCamera(portrait){
 async function start(){
   try{
     status("Cargando el probador…");
-    if(!sdk) sdk=await import("https://cdn.jsdelivr.net/npm/@decartai/sdk@0.2.14/+esm");
+    await loadSdk();
     model=sdk.models.realtime("lucy-vton-3.6");
     client ??= sdk.createDecartClient({ apiKeyProvider: async()=>{
       const d=await api("/api/realtime-token",{});
       endAt=Date.now()+d.secondsLeft*1000; return d.apiKey; } });
 
     status("Pidiendo permiso para usar la cámara…");
-    const portrait = isPhone && innerHeight>innerWidth && !portraitTried;
+    vertical = isPhone && innerHeight>innerWidth;
+    $("studio").classList.toggle("vertical", vertical);
+    const portrait = vertical && !portraitTried;
     camStream=await getCamera(portrait);
     const lv=$("localVid"); lv.classList.remove("pip"); lv.classList.toggle("mirror", facing==="user"); lv.hidden=false; lv.srcObject=camStream; lv.play().catch(()=>{});
+    if(vertical){
+      await new Promise(r=> lv.readyState>=2 ? r() : lv.addEventListener("loadeddata",r,{once:true}));
+      compose=verticalStream(lv, model.width||1280, model.height||720);
+    }
     const s=camStream.getVideoTracks()[0].getSettings();
     if(s.width&&s.height) $("screen").style.setProperty("--pip-ar", `${s.width}/${s.height}`);
 
     status("Conectando con la IA… (unos segundos)");
     picked[current.part] ??= current;
     const st0=await garmentState();
-    rt=await client.realtime.connect(camStream,{
+    rt=await client.realtime.connect(compose ? compose.stream : camStream,{
       model, mirror: facing==="user",
       initialState: st0.image ? { prompt:{ text:st0.prompt, enhance:false }, image:st0.image } : { prompt:{ text:st0.prompt, enhance:false } },
       onRemoteStream: st=>{ const rv=$("remoteVid"); rv.srcObject=st; rv.hidden=false; rv.play().catch(()=>{}); lv.classList.add("pip"); },
@@ -523,6 +570,7 @@ async function applyGarment(){
 function cleanup(){
   const r=rt; rt=null; try{ r?.disconnect(); }catch{}
   clearInterval(timer);
+  compose?.stop(); compose=null;
   camStream?.getTracks().forEach(t=>t.stop()); camStream=null;
   $("remoteVid").srcObject=null; $("remoteVid").hidden=true;
   $("localVid").srcObject=null; $("localVid").classList.remove("pip");
@@ -535,10 +583,14 @@ async function stop(msg){
 }
 $("stopBtn").onclick=()=>stop("Prueba terminada. El tiempo que te quede sigue corriendo en tu pase actual.");
 $("flipBtn").onclick=()=>{ facing = facing==="user" ? "environment" : "user"; cleanup(); start(); };
-$("closeStudio").onclick=()=>{ cleanup(); status(""); show("consentPanel",false); $("studio").hidden=true; document.body.style.overflow=""; api("/api/me").then(d=>{ me=d.user; renderAccount(); }).catch(()=>{}); };
+$("closeStudio").onclick=()=>{ cleanup(); $("studio").classList.remove("vertical"); status(""); show("consentPanel",false); $("studio").hidden=true; document.body.style.overflow=""; api("/api/me").then(d=>{ me=d.user; renderAccount(); }).catch(()=>{}); };
 $("snap").onclick=async()=>{
   const v=$("remoteVid"); if(!v.videoWidth) return;
-  const c=document.createElement("canvas"); c.width=v.videoWidth; c.height=v.videoHeight; c.getContext("2d").drawImage(v,0,0);
+  const c=document.createElement("canvas");
+  if(compose){ // solo la franja central, en vertical
+    const k=v.videoWidth/compose.W, sx=compose.sx*k, sw=compose.sw*k;
+    c.width=Math.round(sw); c.height=v.videoHeight; c.getContext("2d").drawImage(v,sx,0,sw,v.videoHeight,0,0,c.width,c.height);
+  } else { c.width=v.videoWidth; c.height=v.videoHeight; c.getContext("2d").drawImage(v,0,0); }
   const blob=await new Promise(r=>c.toBlob(r,"image/jpeg",.92));
   const file=new File([blob],`probador-${current.id}.jpg`,{type:"image/jpeg"});
   if(isPhone && navigator.canShare?.({files:[file]})){ try{ await navigator.share({files:[file], title:current.name}); return; }catch{} }
@@ -547,7 +599,12 @@ $("snap").onclick=async()=>{
 document.addEventListener("visibilitychange",async()=>{ if(document.visibilityState==="visible" && rt && !wakeLock){ try{ wakeLock=await navigator.wakeLock?.request("screen"); }catch{} } });
 addEventListener("keydown",e=>{ if(e.key==="Escape"){ if(!$("studio").hidden) $("closeStudio").click(); document.querySelectorAll(".modal").forEach(m=>m.hidden=true); } });
 
-loadAll().catch(err=>{ $("pName").textContent="No se pudo cargar la tienda."; console.error(err); });
+loadAll().then(()=>{
+  // precarga la IA y la foto de la prenda para que el probador abra más rápido
+  if(!pub.available) return;
+  const idle=window.requestIdleCallback||(f=>setTimeout(f,1200));
+  idle(()=>{ loadSdk().catch(()=>{}); if(current) garmentBlob(current).catch(()=>{}); });
+}).catch(err=>{ $("pName").textContent="No se pudo cargar la tienda."; console.error(err); });
 </script>
 </body>
 </html>
