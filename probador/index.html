@@ -2,49 +2,53 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lana Norte — Probador</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#15171c">
+<title>Hamilton Mostrador</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Inter:wght@400;500;600&display=swap">
 <style>
-  /* Layout: ficha de producto a dos columnas; el probador en vivo se abre a pantalla completa */
+  /* Layout: ficha de producto a dos columnas; el probador en vivo ocupa toda la pantalla (también en celular) */
   :root{
     --bg:#f4f4f1; --paper:#ffffff; --ink:#15171c; --muted:#6b6e76; --line:#e2e2dc;
-    --accent:#7a1526; --accent-ink:#ffffff; --live:#e5484d;
+    --accent:#7a1526; --accent-ink:#ffffff; --live:#e5484d; --ok:#1f8a52;
     --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
     --body:"Inter", "Segoe UI", system-ui, sans-serif;
   }
   *{box-sizing:border-box}
   [hidden]{display:none!important}
   html,body{margin:0}
-  body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--body)}
-  button{font:inherit;cursor:pointer}
+  body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--body);-webkit-text-size-adjust:100%}
+  button{font:inherit;cursor:pointer;color:inherit}
+  input,select{font:inherit}
   :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 
-  header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px max(16px,4vw);border-bottom:1px solid var(--line);background:var(--paper)}
-  .logo{font:800 22px/1 var(--display);letter-spacing:-.02em}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px max(16px,env(safe-area-inset-right)) 14px max(16px,env(safe-area-inset-left));border-bottom:1px solid var(--line);background:var(--paper);position:sticky;top:0;z-index:5}
+  .logo{font:800 22px/1 var(--display);letter-spacing:-.02em;white-space:nowrap}
   .logo span{color:var(--accent)}
+  @media (max-width:420px){.logo{font-size:19px}}
   nav{display:flex;gap:22px;color:var(--muted);font-size:14px}
   nav b{color:var(--ink);font-weight:600}
-  .cart{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:7px 14px;font-size:14px}
+  .acct{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:7px 14px;font-size:14px;max-width:60vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .acct b{color:var(--ok)}
 
-  main{max-width:1180px;margin:0 auto;padding:32px max(16px,4vw) 64px;display:grid;grid-template-columns:1.1fr 1fr;gap:48px}
+  main{max-width:1180px;margin:0 auto;padding:28px max(16px,env(safe-area-inset-right)) 64px max(16px,env(safe-area-inset-left));display:grid;grid-template-columns:1.1fr 1fr;gap:48px}
   main>*{min-width:0}
-  @media (max-width:860px){main{grid-template-columns:minmax(0,1fr);gap:28px} nav{display:none}}
+  @media (max-width:860px){main{grid-template-columns:minmax(0,1fr);gap:24px;padding-top:16px} nav{display:none}}
 
   .gallery{display:grid;gap:12px}
   .hero{position:relative;background:linear-gradient(#fbfbf8,#ececE6);border-radius:18px;overflow:hidden;border:1px solid var(--line);aspect-ratio:7/8}
   .hero img{position:absolute;inset:8%;width:84%;height:84%;object-fit:contain;filter:drop-shadow(0 18px 22px rgba(0,0,0,.16))}
-  .tag{position:absolute;left:16px;top:16px;background:var(--ink);color:#fff;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:6px 10px;border-radius:6px;z-index:1}
+  .tag{position:absolute;left:14px;top:14px;background:var(--ink);color:#fff;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:6px 10px;border-radius:6px;z-index:1}
   .thumbs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
-  @media (max-width:520px){.thumbs{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  @media (max-width:520px){.thumbs{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}}
   .thumbs button{position:relative;padding:0;border:2px solid transparent;border-radius:12px;background:var(--paper);aspect-ratio:1}
   .thumbs button[aria-pressed="true"]{border-color:var(--ink)}
   .thumbs img{position:absolute;inset:10%;width:80%;height:80%;object-fit:contain}
 
-  .info{display:flex;flex-direction:column;gap:22px}
+  .info{display:flex;flex-direction:column;gap:20px}
   .crumbs{color:var(--muted);font-size:13px}
-  h1{font:800 clamp(30px,4.4vw,46px)/1.02 var(--display);letter-spacing:-.03em;margin:0;text-wrap:balance}
+  h1{font:800 clamp(28px,4.4vw,46px)/1.04 var(--display);letter-spacing:-.03em;margin:0;text-wrap:balance}
   .price{display:flex;align-items:baseline;gap:12px;font:600 22px var(--body);font-variant-numeric:tabular-nums}
   .price s{color:var(--muted);font-size:16px;font-weight:400}
   .desc{color:#3a3d45;margin:0;max-width:52ch}
@@ -58,54 +62,77 @@
   .tryon-card h3{margin:0;font:600 16px var(--body)}
   .tryon-card p{margin:2px 0 0;color:var(--muted);font-size:13.5px}
   .tryon-card .btn{grid-column:1/-1}
-  .btn{display:flex;align-items:center;justify-content:center;gap:10px;border:0;border-radius:12px;padding:15px 18px;font-weight:600;width:100%}
+  .btn{display:flex;align-items:center;justify-content:center;gap:10px;border:0;border-radius:12px;padding:15px 18px;font-weight:600;width:100%;text-decoration:none}
   .btn.primary{background:var(--accent);color:var(--accent-ink)}
   .btn.dark{background:var(--ink);color:#fff}
+  .btn.ghost{background:var(--paper);border:1px solid var(--line);color:var(--ink)}
+  .btn.wa{background:#1f8a52;color:#fff}
   .perks{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;color:var(--muted)}
   .perks div{border-top:1px solid var(--line);padding-top:10px}
 
+  /* Ventanas (iniciar sesión, comprar tiempo) */
+  .modal{position:fixed;inset:0;background:rgba(10,11,14,.55);display:grid;place-items:end center;z-index:30;padding:0}
+  @media (min-width:600px){.modal{place-items:center;padding:20px}}
+  .sheet{background:var(--paper);width:100%;max-width:460px;max-height:92dvh;overflow:auto;border-radius:20px 20px 0 0;padding:22px max(20px,env(safe-area-inset-right)) calc(22px + env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));display:grid;gap:14px}
+  @media (min-width:600px){.sheet{border-radius:20px}}
+  .sheet h3{margin:0;font:800 22px var(--display);letter-spacing:-.02em}
+  .sheet p{margin:0;color:var(--muted);font-size:14px}
+  .sheet input{width:100%;padding:13px 14px;border-radius:10px;border:1px solid var(--line);background:#fafaf8;font-size:16px}
+  .sheet .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .link{background:none;border:0;padding:0;color:var(--accent);font-weight:600;text-decoration:underline}
+  .err{color:#b42318;font-size:13.5px}
+  .okmsg{color:var(--ok);font-size:13.5px}
+  .pkgs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .pkg{border:2px solid var(--line);background:#fafaf8;border-radius:14px;padding:14px;text-align:left;display:grid;gap:2px}
+  .pkg b{font:800 26px var(--display)}
+  .pkg span{color:var(--muted);font-size:13px}
+  .pkg[aria-pressed="true"]{border-color:var(--accent);background:#fff}
+  .bankbox{background:#f6f6f3;border:1px dashed var(--line);border-radius:12px;padding:12px 14px;font-size:14px;display:grid;gap:4px}
+  .bankbox div{display:flex;justify-content:space-between;gap:10px}
+  .bankbox span{color:var(--muted)}
+  .x{background:#eeeeea;border:0;width:36px;height:36px;border-radius:50%;font-size:18px;flex:none}
+
   /* Probador en vivo */
-  .studio{position:fixed;inset:0;background:#0d0e12;color:#fff;display:grid;grid-template-rows:auto 1fr auto;z-index:20}
-  .studio-top{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;gap:12px}
-  .studio-top h2{margin:0;font:800 20px var(--display);letter-spacing:-.02em}
+  .studio{position:fixed;inset:0;height:100dvh;background:#0d0e12;color:#fff;display:grid;grid-template-rows:auto minmax(0,1fr) auto;grid-template-columns:minmax(0,1fr);z-index:20;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+  .studio-top{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;gap:12px}
+  .studio-top h2{margin:0;font:800 18px var(--display);letter-spacing:-.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .studio-top small{color:#9a9ca5;display:block;font:400 13px var(--body)}
-  .x{background:#22242c;border:0;color:#fff;width:40px;height:40px;border-radius:50%;font-size:20px;flex:none}
-  .stage{position:relative;display:grid;place-items:center;overflow:hidden;min-height:0;padding:0 12px}
-  .screen{position:relative;height:100%;max-height:100%;aspect-ratio:16/9;max-width:100%;border-radius:16px;overflow:hidden;background:#1a1c22}
-  .screen video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-  #localVid{transform:scaleX(-1);filter:saturate(.6) brightness(.7)}
-  .pip{position:absolute!important;inset:auto 12px 12px auto!important;width:22%!important;height:auto!important;aspect-ratio:16/9;border-radius:10px;border:2px solid rgba(255,255,255,.6);filter:none!important;z-index:2}
-  .live{position:absolute;left:12px;top:12px;display:flex;gap:8px;align-items:center;background:rgba(0,0,0,.55);padding:6px 12px;border-radius:999px;font-size:13px;font-variant-numeric:tabular-nums;z-index:2}
+  .studio-top .x{background:#22242c;color:#fff}
+  .stage{position:relative;min-height:0;padding:0 10px;display:grid}
+  .screen{position:relative;width:100%;height:100%;border-radius:16px;overflow:hidden;background:#1a1c22}
+  .screen video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+  #localVid.mirror{transform:scaleX(-1)}
+  .pip{inset:auto 10px 10px auto!important;width:26%!important;height:auto!important;aspect-ratio:var(--pip-ar,16/9);border-radius:10px;border:2px solid rgba(255,255,255,.6);object-fit:cover!important;z-index:2}
+  .live{position:absolute;left:10px;top:10px;display:flex;gap:8px;align-items:center;background:rgba(0,0,0,.6);padding:6px 12px;border-radius:999px;font-size:14px;font-variant-numeric:tabular-nums;z-index:2}
   .live i{width:8px;height:8px;border-radius:50%;background:var(--live);animation:blink 1s infinite}
   @keyframes blink{50%{opacity:.3}}
   @media (prefers-reduced-motion:reduce){.live i{animation:none}}
-  .status{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);background:rgba(15,16,20,.85);backdrop-filter:blur(6px);padding:10px 16px;border-radius:999px;font-size:14px;max-width:calc(100% - 32px);text-align:center;z-index:3}
-  .panel{position:absolute;inset:0;display:grid;place-items:center;padding:20px;z-index:4}
-  .card{background:#17191f;border:1px solid #2a2d36;border-radius:18px;padding:24px;max-width:460px;width:100%;display:grid;gap:14px}
-  .card h3{margin:0;font:800 22px var(--display);letter-spacing:-.02em}
+  .status{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);background:rgba(15,16,20,.88);backdrop-filter:blur(6px);padding:10px 16px;border-radius:14px;font-size:14px;width:max-content;max-width:calc(100% - 24px);text-align:center;z-index:3}
+  .panel{position:absolute;inset:0;display:grid;place-items:center;padding:16px;z-index:4}
+  .card{background:#17191f;border:1px solid #2a2d36;border-radius:18px;padding:22px;max-width:440px;width:100%;display:grid;gap:12px}
+  .card h3{margin:0;font:800 21px var(--display);letter-spacing:-.02em}
   .card p{margin:0;color:#b8bac2;font-size:14px}
-  .card a{color:#fff}
-  .card input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid #343844;background:#0f1014;color:#fff;font:14px var(--body)}
-  .card .err{color:#ff8a8f;font-size:13px}
-  .studio-bottom{padding:14px 18px 20px;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center}
-  .chip{display:flex;align-items:center;gap:8px;background:#1d1f26;border:2px solid transparent;color:#fff;border-radius:999px;padding:5px 14px 5px 5px}
+  .studio-bottom{padding:10px 12px 14px;display:grid;gap:10px}
+  .chiprow{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+  .chiprow::-webkit-scrollbar{display:none}
+  @media (min-width:900px){.chiprow{justify-content:center;flex-wrap:wrap}}
+  .chiplabel{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8d909a;align-self:center;flex:none}
+  .chip{flex:none;display:flex;align-items:center;gap:8px;background:#1d1f26;border:2px solid transparent;color:#fff;border-radius:999px;padding:5px 14px 5px 5px}
   .chip img{width:34px;height:34px;border-radius:50%;background:#fff;object-fit:contain;padding:2px}
   .chip[aria-pressed="true"]{border-color:#fff}
-  .chip:disabled{opacity:.5;cursor:wait}
-  .chipgroup{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  .chiplabel{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8d909a}
-  #outfitBtn[aria-pressed="true"]{background:#fff;color:#111}
-  .sep{width:1px;height:28px;background:#2c2f38;margin:0 4px}
-  .tool{background:#fff;color:#111;border:0;border-radius:999px;padding:10px 16px;font-weight:600}
+  .chip:disabled{opacity:.5}
+  .tools{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+  .tool{background:#fff;color:#111;border:0;border-radius:999px;padding:11px 16px;font-weight:600}
   .tool.alt{background:#1d1f26;color:#fff}
   .tool.stop{background:var(--live);color:#fff}
+  #outfitBtn[aria-pressed="true"]{background:#fff;color:#111}
 </style>
 </head>
 <body>
 <header>
-  <div class="logo">lana<span>/</span>norte</div>
+  <div class="logo" id="logo">Hamilton <span>Mostrador</span></div>
   <nav><span>Nuevo</span><b>Ropa</b><span>Chaquetas</span><span>Pantalones</span></nav>
-  <button class="cart" id="cartBtn">Carrito (0)</button>
+  <button class="acct" id="acctBtn">Iniciar sesión</button>
 </header>
 
 <main>
@@ -116,7 +143,7 @@
 
   <section class="info">
     <div class="crumbs" id="pCat"></div>
-    <h1 id="pName"></h1>
+    <h1 id="pName">Cargando…</h1>
     <div class="price"><span id="pPrice"></span><s id="pOld"></s></div>
     <p class="desc" id="pDesc"></p>
 
@@ -131,7 +158,7 @@
       </div>
       <div>
         <h3>Pruébatela en vivo con tu cámara</h3>
-        <p>Te ves con la prenda puesta en tiempo real, como en un espejo. Cambia de prenda sin colgar.</p>
+        <p id="tryNote">Te ves con la prenda puesta en tiempo real, en tu celular o computadora.</p>
       </div>
       <button class="btn primary" id="openStudio">Probármela en vivo</button>
     </div>
@@ -147,142 +174,259 @@
   </section>
 </main>
 
+<!-- Iniciar sesión / crear cuenta -->
+<div class="modal" id="authModal" hidden>
+  <form class="sheet" id="authForm">
+    <div class="row"><h3 id="authTitle">Inicia sesión</h3><button type="button" class="x" data-close aria-label="Cerrar">×</button></div>
+    <p>Tu tiempo de probador queda en tu cuenta y solo tú puedes usarlo.</p>
+    <input id="authEmail" type="email" autocomplete="email" placeholder="Tu correo" required>
+    <input id="authPass" type="password" autocomplete="current-password" placeholder="Contraseña (mínimo 6 caracteres)" required minlength="6">
+    <div class="err" id="authErr" hidden></div>
+    <button class="btn primary" type="submit" id="authSubmit">Entrar</button>
+    <p id="authSwitchTxt">¿No tienes cuenta? <button type="button" class="link" id="authSwitch">Créala aquí</button></p>
+  </form>
+</div>
+
+<!-- Mi cuenta / comprar tiempo -->
+<div class="modal" id="payModal" hidden>
+  <div class="sheet">
+    <div class="row"><h3>Tiempo de probador</h3><button type="button" class="x" data-close aria-label="Cerrar">×</button></div>
+    <p id="balanceTxt"></p>
+    <div class="pkgs" id="pkgs"></div>
+    <div class="label" style="margin:4px 0 -4px">¿Cómo quieres pagar?</div>
+    <div class="row" style="gap:8px">
+      <button class="btn ghost" id="mTransfer" aria-pressed="false">Transferencia</button>
+      <button class="btn ghost" id="mWhats" aria-pressed="false">WhatsApp</button>
+    </div>
+    <div id="transferBox" hidden style="display:grid;gap:10px">
+      <div class="bankbox" id="bankBox"></div>
+      <p>Haz la transferencia por el valor exacto y luego avísanos. Te habilitamos el tiempo apenas la confirmemos.</p>
+      <button class="btn primary" id="paidBtn">Ya transferí, avisar</button>
+    </div>
+    <div id="whatsBox" hidden style="display:grid;gap:10px">
+      <p>Te escribimos por WhatsApp para coordinar el pago. Al confirmar, te habilitamos el tiempo.</p>
+      <a class="btn wa" id="waLink" href="#" target="_blank" rel="noopener">Pagar por WhatsApp</a>
+    </div>
+    <div class="okmsg" id="payOk" hidden></div>
+    <div class="err" id="payErr" hidden></div>
+    <div id="pendingTxt" class="okmsg" hidden></div>
+    <button class="btn ghost" id="logoutBtn">Cerrar sesión</button>
+  </div>
+</div>
+
+<!-- Probador -->
 <div class="studio" id="studio" hidden>
   <div class="studio-top">
-    <div><h2 id="sName">Probador en vivo</h2><small id="hint">Ponte de frente, con buena luz, de la cintura para arriba.</small></div>
+    <div style="min-width:0"><h2 id="sName">Probador en vivo</h2><small id="hint"></small></div>
     <button class="x" id="closeStudio" aria-label="Cerrar probador">×</button>
   </div>
   <div class="stage">
     <div class="screen" id="screen">
       <video id="localVid" playsinline muted autoplay></video>
-      <video id="remoteVid" playsinline autoplay hidden></video>
-      <div class="live" id="live" hidden><i></i><span id="clock">0:00</span><span id="cost"></span></div>
+      <video id="remoteVid" playsinline muted autoplay hidden></video>
+      <div class="live" id="live" hidden><i></i><span id="clock">0:00</span></div>
       <div class="status" id="status" hidden></div>
-
-      <div class="panel" id="setupPanel" hidden>
-        <form class="card" id="keyForm">
-          <h3>Conecta tu cuenta de Decart</h3>
-          <p>El probador usa Lucy VTON de Decart. Crea tu cuenta en <a href="https://platform.decart.ai/" target="_blank" rel="noopener">platform.decart.ai</a>, copia tu clave de API (empieza con <b>dct_</b>) y pégala aquí. Se guarda solo en esta computadora.</p>
-          <input id="keyInput" type="password" autocomplete="off" placeholder="dct_…" aria-label="Clave de API de Decart">
-          <div class="err" id="keyErr" hidden></div>
-          <button class="tool" type="submit">Guardar clave</button>
-        </form>
-      </div>
-
       <div class="panel" id="consentPanel" hidden>
         <div class="card">
           <h3>Antes de encender la cámara</h3>
           <p>Para mostrarte con la prenda puesta, el video de tu cámara se envía en tiempo real a Decart, un servicio de inteligencia artificial, solo mientras dure la prueba. No guardamos tu video.</p>
-          <p>Cada prueba dura hasta <b id="capTxt">90</b> segundos. Puedes terminarla cuando quieras.</p>
+          <p>Tu tiempo empieza a correr cuando se conecta la cámara. Prepara la luz y la distancia antes de empezar.</p>
           <button class="tool" id="acceptBtn">Acepto, encender cámara</button>
         </div>
       </div>
     </div>
   </div>
   <div class="studio-bottom">
-    <div id="chips" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center"></div>
-    <button class="tool alt" id="snap" hidden>Tomar foto</button>
-    <button class="tool stop" id="stopBtn" hidden>Terminar</button>
+    <div class="chiprow" id="chipsTop"></div>
+    <div class="chiprow" id="chipsBottom"></div>
+    <div class="tools">
+      <button class="tool alt" id="outfitBtn" hidden>Ponerme el conjunto</button>
+      <button class="tool alt" id="flipBtn" hidden>Cambiar cámara</button>
+      <button class="tool alt" id="snap" hidden>Tomar foto</button>
+      <button class="tool stop" id="stopBtn" hidden>Terminar</button>
+    </div>
   </div>
 </div>
 
 <script type="module">
-/* ---------- Prendas ----------
-   part: "top" (arriba) o "bottom" (abajo). look: descripción en inglés para la IA,
-   con detalles visibles en la foto (color, tela, corte, largo, cintura, bolsillos). */
-const GARMENTS = [
-  { id:"chaqueta", part:"top", cat:"Chaquetas / Deportivas", name:"Chaqueta deportiva blanca con paneles burdeos", short:"Chaqueta",
-    price:"$59.90", old:"$74.90", src:"img/chaqueta.png",
-    desc:"Chaqueta estilo retro con cuello alto, cierre completo y paneles en negro y burdeos. Puños y cintura con elástico, bolsillos con vivo negro.",
-    look:"a white zip-up track jacket with a high black stand collar, black and burgundy curved panels on the chest and sides, a burgundy stripe across each long sleeve, white ribbed cuffs and hem, a full white zipper and two slim black pocket welts" },
-  { id:"camiseta", part:"top", cat:"Camisetas / Oversize", name:"Camiseta Colorblock Borgoña y Negra", short:"Camiseta",
-    price:"$24.90", old:"$32.00", src:"img/camiseta.png",
-    desc:"Camiseta oversize con franjas verticales borgoña y negro, cuello redondo acanalado y parche bordado “08”. Tela suave con buena caída.",
-    look:"an oversized short-sleeve burgundy t-shirt with two wide vertical black stripes down the front, a black ribbed crew neck and a small black shield patch with the number 08 on the chest" },
-  { id:"sudadera", part:"top", cat:"Sudaderas / Cuello V", name:"Sudadera universitaria azul marino SCENERY TRAVEL", short:"Sudadera",
-    price:"$39.90", old:"$49.90", src:"img/sudadera.png",
-    desc:"Sudadera azul marino de cuello en V con ribete blanco y estampado universitario al frente. Puños y cintura acanalados.",
-    look:"a navy blue long-sleeve V-neck sweatshirt with white striped trim on the V collar, the word SCENERY in large white varsity letters across the chest with TRAVEL below it, and ribbed cuffs and hem" },
-  { id:"calentador", part:"bottom", cat:"Pantalones / Calentadores", name:"Calentador deportivo negro con franjas burdeos", short:"Calentador",
-    price:"$34.90", old:"$42.00", src:"img/calentador.png",
-    desc:"Calentador de tela liviana tipo rompevientos, negro con franjas laterales burdeos y vivo blanco. Cintura elástica con cordón y bastas ajustables con tope.",
-    look:"loose black track pants made of light windbreaker fabric, with wide burgundy side panels outlined by thin white piping, an elastic waistband with a black drawstring, a small white mountain logo with the word outdoorsport on the upper left thigh, and drawstring toggle ankle cuffs" },
-  { id:"cargo", part:"bottom", cat:"Pantalones / Cargo", name:"Pantalón cargo gris holgado", short:"Cargo",
-    price:"$39.90", old:"$48.00", src:"img/cargo.png",
-    desc:"Pantalón cargo de corte amplio en gris claro, con bolsillos laterales con tapa y botón, cintura elástica con cordón negro y pliegues en la parte baja.",
-    look:"baggy light gray cargo pants with a wide straight leg, an elastic waistband with a black drawstring, large flap cargo pockets with a snap button on each side of the thigh, front slant pockets and soft stacked folds at the hem" },
-  // Para agregar otra prenda, copia uno de los bloques de arriba y cambia part ("top" o "bottom"), textos, precio y foto.
-];
-const PREFIX = { top:"Substitute the upper body garment with ", bottom:"Substitute the lower body garment with " };
-const promptFor = g => PREFIX[g.part] + g.look + ".";
-const HINT = { top:"Ponte de frente, con buena luz, de la cintura para arriba.",
-               bottom:"Aléjate hasta que se vea tu cuerpo completo, de la cabeza a los pies.",
-               outfit:"Aléjate hasta que se vea tu cuerpo completo, de la cabeza a los pies." };
-const PRICE_PER_SEC = 0.02; // Lucy VTON 3.6, 720p, modo normal
-
-/* ---------- Tienda ---------- */
-let current = GARMENTS[0], mode = "single";
-const picked = { top:null, bottom:null }; // última prenda elegida de cada parte
 const $ = id => document.getElementById(id);
-const thumbs = $("thumbs"), chips = $("chips");
-const groups = {};
-for(const part of ["top","bottom"]){
-  if(!GARMENTS.some(g=>g.part===part)) continue;
-  const wrap=document.createElement("div"); wrap.className="chipgroup";
-  const lab=document.createElement("span"); lab.className="chiplabel"; lab.textContent= part==="top" ? "Arriba" : "Abajo";
-  wrap.appendChild(lab); chips.appendChild(wrap); groups[part]=wrap;
-}
-GARMENTS.forEach(g=>{
-  const b=document.createElement("button"); b.setAttribute("aria-label",g.name); b.dataset.id=g.id;
-  const im=document.createElement("img"); im.src=g.src; im.alt=""; b.appendChild(im);
-  b.onclick=()=>select(g); thumbs.appendChild(b);
-  const c=document.createElement("button"); c.className="chip"; c.dataset.id=g.id;
-  const ci=document.createElement("img"); ci.src=g.src; ci.alt="";
-  c.append(ci, document.createTextNode(g.short)); c.onclick=()=>select(g, true); groups[g.part].appendChild(c);
-});
-const outfitBtn=document.createElement("button"); outfitBtn.className="tool alt"; outfitBtn.id="outfitBtn"; outfitBtn.hidden=true;
-outfitBtn.textContent="Ponerme el conjunto"; outfitBtn.onclick=()=>{ mode="outfit"; refreshPressed(); updateHint(); applyGarment(); };
-chips.appendChild(outfitBtn);
-const allChips = () => chips.querySelectorAll(".chip");
-function refreshPressed(){
-  for(const el of thumbs.children) el.setAttribute("aria-pressed", el.dataset.id===current.id);
-  for(const el of allChips()) el.setAttribute("aria-pressed",
-    mode==="outfit" ? (el.dataset.id===picked.top?.id || el.dataset.id===picked.bottom?.id) : el.dataset.id===current.id);
-  outfitBtn.hidden = !(picked.top && picked.bottom);
-  outfitBtn.setAttribute("aria-pressed", mode==="outfit");
-}
-function updateHint(){ $("hint").textContent = HINT[mode==="outfit" ? "outfit" : current.part]; }
-["S","M","L","XL","XXL"].forEach((s,i)=>{ const b=document.createElement("button"); b.textContent=s; b.setAttribute("aria-pressed",i===1);
-  b.onclick=()=>{ $("sizes").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed","false")); b.setAttribute("aria-pressed","true"); }; $("sizes").appendChild(b); });
+const money = n => "$" + Number(n).toFixed(2);
+const api = async (path, body) => {
+  const r = await fetch(path, body === undefined ? {} : { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body) });
+  const data = await r.json().catch(()=>({}));
+  if(!r.ok) throw Object.assign(new Error(data.error || "Algo falló. Intenta de nuevo."), { status:r.status });
+  return data;
+};
+const PREFIX = { top:"Substitute the upper body garment with ", bottom:"Substitute the lower body garment with " };
+const HINT = { top:"De frente, con buena luz, de la cintura para arriba.", bottom:"Aléjate hasta que se vea tu cuerpo completo.", outfit:"Aléjate hasta que se vea tu cuerpo completo." };
+const isPhone = matchMedia("(pointer:coarse)").matches;
 
+let pub = { products:[], packages:[] }, me = null, GARMENTS = [], current = null, mode = "single";
+const picked = { top:null, bottom:null };
+
+/* ---------- datos ---------- */
+async function loadAll(){
+  [pub, { user:me }] = await Promise.all([api("/api/public"), api("/api/me")]);
+  GARMENTS = pub.products;
+  // logo: la primera palabra normal y el resto en el color de la marca
+  const name=(pub.storeName||"Hamilton Mostrador").replace("/"," ").trim();
+  const [a,...rest]=name.split(/\s+/);
+  document.title=name;
+  $("logo").innerHTML=""; $("logo").append(a, ...(rest.length ? [" ", Object.assign(document.createElement("span"),{textContent:rest.join(" ")})] : []));
+  buildProducts(); renderAccount();
+  const cheapest = [...pub.packages].sort((x,y)=>x.price-y.price)[0];
+  $("tryNote").textContent = pub.available
+    ? `Te ves con la prenda puesta en tiempo real. Desde ${money(cheapest?.price||0)} por ${cheapest?.seconds||0} segundos.`
+    : "El probador en vivo no está disponible por ahora.";
+}
+const promptFor = g => PREFIX[g.part] + (g.look || g.desc) + ".";
+
+/* ---------- tienda ---------- */
+function buildProducts(){
+  $("thumbs").innerHTML=""; $("chipsTop").innerHTML=""; $("chipsBottom").innerHTML="";
+  for(const part of ["top","bottom"]){
+    const row=$(part==="top"?"chipsTop":"chipsBottom");
+    if(GARMENTS.some(g=>g.part===part)) row.append(Object.assign(document.createElement("span"),{className:"chiplabel",textContent:part==="top"?"Arriba":"Abajo"}));
+  }
+  for(const g of GARMENTS){
+    const b=document.createElement("button"); b.setAttribute("aria-label",g.name); b.dataset.id=g.id;
+    b.append(Object.assign(document.createElement("img"),{src:g.src,alt:""})); b.onclick=()=>select(g); $("thumbs").append(b);
+    const c=document.createElement("button"); c.className="chip"; c.dataset.id=g.id;
+    c.append(Object.assign(document.createElement("img"),{src:g.src,alt:""}), document.createTextNode(g.short||g.name));
+    c.onclick=()=>select(g,true); $(g.part==="bottom"?"chipsBottom":"chipsTop").append(c);
+  }
+  const keep = GARMENTS.find(g=>g.id===current?.id) || GARMENTS[0];
+  if(keep) select(keep);
+}
 function select(g, fromStudio){
   current=g;
   $("heroImg").src=g.src; $("heroImg").alt=g.name;
-  $("pCat").textContent=g.cat; $("pName").textContent=g.name;
-  $("pPrice").textContent=g.price; $("pOld").textContent=g.old; $("pDesc").textContent=g.desc;
+  $("pCat").textContent=g.cat||""; $("pName").textContent=g.name;
+  $("pPrice").textContent=money(g.price); $("pOld").textContent=g.old?money(g.old):""; $("pDesc").textContent=g.desc||"";
   $("sName").textContent=g.name;
   if(fromStudio){ picked[g.part]=g; mode="single"; }
-  refreshPressed(); updateHint();
+  refreshPressed();
   if(fromStudio && rt) applyGarment();
 }
-// lo que se manda a la IA: una prenda (foto + texto) o el conjunto (solo texto, como indica Decart)
-async function garmentState(){
-  if(mode==="outfit" && picked.top && picked.bottom)
-    return { prompt:`Substitute the outfit with ${picked.top.look}, and ${picked.bottom.look}.`, image:null };
-  return { prompt:promptFor(current), image: await garmentBlob(current) };
+function refreshPressed(){
+  for(const el of $("thumbs").children) el.setAttribute("aria-pressed", el.dataset.id===current?.id);
+  for(const el of document.querySelectorAll(".chip")) el.setAttribute("aria-pressed",
+    mode==="outfit" ? (el.dataset.id===picked.top?.id || el.dataset.id===picked.bottom?.id) : el.dataset.id===current?.id);
+  $("outfitBtn").hidden = !(picked.top && picked.bottom);
+  $("outfitBtn").setAttribute("aria-pressed", mode==="outfit");
+  $("hint").textContent = HINT[mode==="outfit" ? "outfit" : (current?.part||"top")];
 }
+$("outfitBtn").onclick=()=>{ mode="outfit"; refreshPressed(); applyGarment(); };
+["S","M","L","XL","XXL"].forEach((s,i)=>{ const b=document.createElement("button"); b.textContent=s; b.setAttribute("aria-pressed",i===1);
+  b.onclick=()=>{ $("sizes").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed","false")); b.setAttribute("aria-pressed","true"); }; $("sizes").append(b); });
 let bag=0;
-$("addCart").onclick=e=>{ bag++; $("cartBtn").textContent=`Carrito (${bag})`; e.target.textContent="Agregado ✓"; setTimeout(()=>e.target.textContent="Agregar al carrito",1400); };
+$("addCart").onclick=e=>{ bag++; e.target.textContent=`Agregado ✓ (${bag})`; setTimeout(()=>e.target.textContent="Agregar al carrito",1400); };
 
-/* ---------- Probador en vivo (Decart Lucy VTON) ---------- */
-let sdk=null, client=null, model=null, rt=null, camStream=null, maxSession=90, seconds=0, consented=false;
+/* ---------- cuenta ---------- */
+const fmtSecs = s => s>=60 ? `${Math.floor(s/60)} min ${s%60} s` : `${s} s`;
+function renderAccount(){
+  $("acctBtn").innerHTML="";
+  if(!me){ $("acctBtn").textContent="Iniciar sesión"; return; }
+  $("acctBtn").append(Object.assign(document.createElement("b"),{textContent:fmtSecs(me.secondsLeft)}), " · "+me.email);
+}
+const openModal = id => { $(id).hidden=false; };
+const closeModal = id => { $(id).hidden=true; };
+document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>closeModal(b.closest(".modal").id));
+document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click",e=>{ if(e.target===m) closeModal(m.id); }));
+$("acctBtn").onclick=()=> me ? openPay() : openAuth();
+
+let authMode="login", afterAuth=null;
+function openAuth(next){ afterAuth=next||null; setAuthMode("login"); $("authErr").hidden=true; openModal("authModal"); }
+function setAuthMode(m){
+  authMode=m;
+  $("authTitle").textContent = m==="login" ? "Inicia sesión" : "Crea tu cuenta";
+  $("authSubmit").textContent = m==="login" ? "Entrar" : "Crear cuenta";
+  $("authPass").autocomplete = m==="login" ? "current-password" : "new-password";
+  $("authSwitchTxt").firstChild.textContent = m==="login" ? "¿No tienes cuenta? " : "¿Ya tienes cuenta? ";
+  $("authSwitch").textContent = m==="login" ? "Créala aquí" : "Inicia sesión";
+}
+$("authSwitch").onclick=()=>setAuthMode(authMode==="login"?"register":"login");
+$("authForm").onsubmit=async e=>{
+  e.preventDefault(); $("authErr").hidden=true;
+  try{
+    ({ user:me } = await api(authMode==="login"?"/api/login":"/api/register", { email:$("authEmail").value, password:$("authPass").value }));
+    $("authPass").value=""; closeModal("authModal"); renderAccount();
+    const n=afterAuth; afterAuth=null; n?.();
+  }catch(err){ $("authErr").textContent=err.message; $("authErr").hidden=false; }
+};
+
+let chosenPkg=null, payMethod=null;
+function openPay(){
+  $("payOk").hidden=true; $("payErr").hidden=true;
+  $("balanceTxt").textContent = me.secondsLeft>=10
+    ? `Tienes ${fmtSecs(me.secondsLeft)} disponibles${me.running?" (tu prueba está en curso)":""}. Puedes comprar más:`
+    : "No tienes tiempo disponible. Elige un paquete:";
+  $("pkgs").innerHTML="";
+  chosenPkg = chosenPkg && pub.packages.find(p=>p.id===chosenPkg.id) || pub.packages[0];
+  for(const p of pub.packages){
+    const b=document.createElement("button"); b.className="pkg"; b.setAttribute("aria-pressed",p.id===chosenPkg?.id);
+    b.append(Object.assign(document.createElement("b"),{textContent:money(p.price)}), Object.assign(document.createElement("span"),{textContent:`${p.seconds} segundos de probador`}));
+    b.onclick=()=>{ chosenPkg=p; openPay(); }; $("pkgs").append(b);
+  }
+  $("mWhats").hidden = !pub.whatsapp;
+  const bk=pub.bank||{};
+  $("mTransfer").hidden = !bk.number;
+  const rows=[["Banco",bk.bank],["Tipo de cuenta",bk.type],["Número",bk.number],["Titular",bk.holder],["Cédula/RUC",bk.idNumber],["Valor",money(chosenPkg?.price||0)]].filter(r=>r[1]);
+  $("bankBox").innerHTML=""; for(const [k,v] of rows){ const d=document.createElement("div"); d.append(Object.assign(document.createElement("span"),{textContent:k}), Object.assign(document.createElement("b"),{textContent:v})); $("bankBox").append(d); }
+  const msg=`Hola, quiero el pase de ${money(chosenPkg?.price||0)} (${chosenPkg?.seconds||0} segundos) para el probador virtual. Mi correo es ${me.email}`;
+  $("waLink").href=`https://wa.me/${pub.whatsapp}?text=${encodeURIComponent(msg)}`;
+  if(!pub.whatsapp && !bk.number){ $("payErr").textContent="La tienda todavía no configuró las formas de pago."; $("payErr").hidden=false; }
+  setMethod(payMethod);
+  $("pendingTxt").hidden=!me.pending.length;
+  $("pendingTxt").textContent=`Tienes ${me.pending.length} pago(s) esperando confirmación. Te habilitamos el tiempo apenas lo revisemos.`;
+  openModal("payModal");
+}
+function setMethod(m){
+  payMethod=m;
+  $("mTransfer").setAttribute("aria-pressed",m==="transfer"); $("mWhats").setAttribute("aria-pressed",m==="whatsapp");
+  $("mTransfer").className="btn "+(m==="transfer"?"dark":"ghost"); $("mWhats").className="btn "+(m==="whatsapp"?"dark":"ghost");
+  $("transferBox").hidden=m!=="transfer"; $("whatsBox").hidden=m!=="whatsapp";
+}
+$("mTransfer").onclick=()=>setMethod("transfer");
+$("mWhats").onclick=()=>setMethod("whatsapp");
+async function sendRequest(method){
+  $("payErr").hidden=true;
+  try{ ({ user:me } = await api("/api/requests",{ packageId:chosenPkg.id, method }));
+    renderAccount(); $("pendingTxt").hidden=true;
+    $("payOk").textContent = method==="transfer" ? "¡Listo! Avisamos a la tienda. Te habilitamos el tiempo apenas confirmen tu transferencia." : "Te abrimos WhatsApp. Cuando confirmen tu pago, el tiempo aparece en tu cuenta.";
+    $("payOk").hidden=false;
+  }catch(err){ $("payErr").textContent=err.message; $("payErr").hidden=false; }
+}
+$("paidBtn").onclick=()=>sendRequest("transfer");
+$("waLink").addEventListener("click",()=>{ sendRequest("whatsapp"); }); // el enlace se abre igual; la solicitud se registra en paralelo
+$("logoutBtn").onclick=async()=>{ await api("/api/logout",{}); me=null; renderAccount(); closeModal("payModal"); };
+
+/* ---------- probador en vivo ---------- */
+let sdk=null, client=null, model=null, rt=null, camStream=null, consented=false, facing="user";
+let endAt=0, timer=null, wakeLock=null, portraitTried=false;
 const status = t => { $("status").textContent=t||""; $("status").hidden=!t; };
 const show = (id,on) => { $(id).hidden=!on; };
 
-// Decart prefiere la prenda sobre fondo blanco: aplanamos el PNG transparente
-const blobCache = new Map();
+async function openStudio(){
+  if(!pub.available){ $("tryNote").textContent="El probador en vivo no está disponible por ahora."; return; }
+  if(!me) return openAuth(openStudio);
+  ({ user:me } = await api("/api/me")); renderAccount();
+  if(!me) return openAuth(openStudio);
+  if(me.secondsLeft<10) return openPay();
+  $("studio").hidden=false; document.body.style.overflow="hidden";
+  select(current); refreshPressed();
+  if(!window.isSecureContext || !navigator.mediaDevices?.getUserMedia){
+    status("Para usar la cámara, abre la tienda con https:// (dirección segura)."); return; }
+  if(!consented){ show("consentPanel",true); return; }
+  start();
+}
+$("openStudio").onclick=openStudio;
+$("acceptBtn").onclick=()=>{ consented=true; show("consentPanel",false); start(); };
+
+// la prenda va sobre fondo blanco, como recomienda Decart
+const blobCache=new Map();
 async function garmentBlob(g){
-  if(blobCache.has(g.id)) return blobCache.get(g.id);
+  if(blobCache.has(g.src)) return blobCache.get(g.src);
   const img=new Image(); img.src=g.src; await img.decode();
   const pad=Math.round(Math.max(img.width,img.height)*.06), size=Math.max(img.width,img.height)+pad*2;
   const c=document.createElement("canvas"); c.width=c.height=Math.min(size,1400);
@@ -290,30 +434,21 @@ async function garmentBlob(g){
   x.fillStyle="#fff"; x.fillRect(0,0,c.width,c.height);
   x.drawImage(img,(size-img.width)/2*k,(size-img.height)/2*k,img.width*k,img.height*k);
   const blob=await new Promise(r=>c.toBlob(r,"image/jpeg",.92));
-  blobCache.set(g.id,blob); return blob;
+  blobCache.set(g.src,blob); return blob;
+}
+async function garmentState(){
+  if(mode==="outfit" && picked.top && picked.bottom)
+    return { prompt:`Substitute the outfit with ${picked.top.look||picked.top.desc}, and ${picked.bottom.look||picked.bottom.desc}.`, image:null };
+  return { prompt:promptFor(current), image: await garmentBlob(current) };
 }
 
-async function openStudio(){
-  $("studio").hidden=false; document.body.style.overflow="hidden";
-  select(current);
-  let st;
-  try{ st=await (await fetch("/api/status")).json(); }
-  catch{ status("No encuentro el servidor del probador. Ábrelo con el servidor local encendido."); return; }
-  maxSession=st.maxSession||90; $("capTxt").textContent=maxSession;
-  if(!st.configured){ show("setupPanel",true); return; }
-  if(!consented){ show("consentPanel",true); return; }
-  start();
+async function getCamera(portrait){
+  // en celular vertical pedimos la cámara en vertical; si el modelo no la acepta, se reintenta en horizontal
+  const w=model.width||1280, h=model.height||720;
+  return navigator.mediaDevices.getUserMedia({ audio:false, video:{
+    facingMode: isPhone ? { ideal:facing } : "user",
+    width:{ ideal: portrait?h:w }, height:{ ideal: portrait?w:h }, frameRate:{ ideal:30, max:30 } } });
 }
-
-$("keyForm").onsubmit=async e=>{
-  e.preventDefault(); $("keyErr").hidden=true;
-  const key=$("keyInput").value.trim(); if(!key) return;
-  const r=await fetch("/api/key",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({key})});
-  const data=await r.json().catch(()=>({}));
-  if(!r.ok){ $("keyErr").textContent=data.error||"No se pudo guardar la clave."; $("keyErr").hidden=false; return; }
-  $("keyInput").value=""; show("setupPanel",false); show("consentPanel",true);
-};
-$("acceptBtn").onclick=()=>{ consented=true; show("consentPanel",false); start(); };
 
 async function start(){
   try{
@@ -321,85 +456,98 @@ async function start(){
     if(!sdk) sdk=await import("https://cdn.jsdelivr.net/npm/@decartai/sdk@0.2.14/+esm");
     model=sdk.models.realtime("lucy-vton-3.6");
     client ??= sdk.createDecartClient({ apiKeyProvider: async()=>{
-      const r=await fetch("/api/realtime-token",{method:"POST"}); const d=await r.json();
-      if(!r.ok) throw new Error(d.error||"Sin token"); return d.apiKey; } });
+      const d=await api("/api/realtime-token",{});
+      endAt=Date.now()+d.secondsLeft*1000; return d.apiKey; } });
 
     status("Pidiendo permiso para usar la cámara…");
-    camStream=await navigator.mediaDevices.getUserMedia({ audio:false,
-      video:{ facingMode:"user", frameRate:model.fps, width:model.width, height:model.height } });
-    const lv=$("localVid"); lv.classList.remove("pip"); lv.hidden=false; lv.srcObject=camStream;
+    const portrait = isPhone && innerHeight>innerWidth && !portraitTried;
+    camStream=await getCamera(portrait);
+    const lv=$("localVid"); lv.classList.remove("pip"); lv.classList.toggle("mirror", facing==="user"); lv.hidden=false; lv.srcObject=camStream; lv.play().catch(()=>{});
+    const s=camStream.getVideoTracks()[0].getSettings();
+    if(s.width&&s.height) $("screen").style.setProperty("--pip-ar", `${s.width}/${s.height}`);
 
     status("Conectando con la IA… (unos segundos)");
     picked[current.part] ??= current;
     const st0=await garmentState();
     rt=await client.realtime.connect(camStream,{
-      model, mirror:true,
+      model, mirror: facing==="user",
       initialState: st0.image ? { prompt:{ text:st0.prompt, enhance:false }, image:st0.image } : { prompt:{ text:st0.prompt, enhance:false } },
-      onRemoteStream: s=>{ const rv=$("remoteVid"); rv.srcObject=s; rv.hidden=false; lv.classList.add("pip"); },
+      onRemoteStream: st=>{ const rv=$("remoteVid"); rv.srcObject=st; rv.hidden=false; rv.play().catch(()=>{}); lv.classList.add("pip"); },
     });
-    seconds=0; tick(0);
     rt.on("connectionChange", s=>{
-      if(s==="generating"||s==="connected"){ status(""); show("live",true); show("snap",true); show("stopBtn",true); }
+      if(s==="generating"||s==="connected") live(true);
       if(s==="reconnecting") status("Se cortó la conexión, reconectando…");
-      if(s==="disconnected") stop(seconds>=maxSession ? "Se acabó el tiempo de esta prueba." : "");
+      if(s==="disconnected" && rt) stop(Date.now()>=endAt ? "Se acabó tu tiempo." : "Se cortó la conexión.");
     });
-    rt.on("generationTick", ({seconds:s})=>tick(s));
     rt.on("error", err=>{ console.error(err); status(errorText(err)); });
-    if(rt.getConnectionState?.()==="generating"||rt.getConnectionState?.()==="connected"){ status(""); show("live",true); show("snap",true); show("stopBtn",true); }
+    if(["generating","connected"].includes(rt.getConnectionState?.())) live(true);
+    try{ wakeLock = await navigator.wakeLock?.request("screen"); }catch{}
   }catch(err){
-    console.error(err); status(errorText(err)); cleanup();
+    console.error(err);
+    const wasPortrait = isPhone && innerHeight>innerWidth && !portraitTried;
+    cleanup();
+    if(wasPortrait && err?.status!==402 && err?.status!==401 && err?.name!=="NotAllowedError"){ portraitTried=true; return start(); }
+    status(errorText(err));
+    if(err?.status===402){ ({ user:me } = await api("/api/me")); renderAccount(); }
   }
 }
-
+function live(on){
+  if(on){ status(""); show("live",true); show("snap",true); show("stopBtn",true); show("flipBtn",isPhone);
+    clearInterval(timer); timer=setInterval(tick,250); tick(); }
+}
+function tick(){
+  const left=Math.max(0,Math.ceil((endAt-Date.now())/1000));
+  $("clock").textContent=`Te quedan ${left} s`;
+  if(left<=0) stop("Se acabó tu tiempo. Puedes comprar más desde tu cuenta.");
+}
 function errorText(err){
   const code=err?.code||"", msg=String(err?.message||err);
-  if(err?.name==="NotAllowedError") return "Sin permiso para la cámara. Actívalo en el candado de la barra de direcciones.";
-  if(err?.name==="NotFoundError") return "No encontré una cámara conectada.";
-  if(code==="INVALID_API_KEY") return "Decart rechazó la clave. Vuelve a guardarla.";
+  if(err?.status) return msg; // mensajes de nuestro servidor ya vienen en español
+  if(err?.name==="NotAllowedError") return "Sin permiso para la cámara. Actívalo en los ajustes del navegador para este sitio.";
+  if(err?.name==="NotFoundError"||err?.name==="OverconstrainedError") return "No encontré una cámara disponible.";
+  if(err?.name==="NotReadableError") return "La cámara está siendo usada por otra app. Ciérrala e intenta de nuevo.";
+  if(code==="INVALID_API_KEY") return "El probador no está disponible por ahora (clave no válida).";
   if(code==="TOKEN_EXPIRED") return "El acceso expiró. Vuelve a intentarlo.";
-  if(/1013|capacity|concurrent/i.test(msg)) return "Decart está saturado en este momento. Intenta en un minuto.";
-  if(/credit|balance|insufficient/i.test(msg)) return "Se acabaron los créditos de Decart. Recarga en platform.decart.ai.";
+  if(/1013|capacity|concurrent/i.test(msg)) return "El servicio está saturado. Intenta en un minuto.";
+  if(/credit|balance|insufficient/i.test(msg)) return "El probador no está disponible por ahora.";
   return "No se pudo conectar: "+msg;
 }
-
-function tick(s){
-  seconds=s;
-  const left=Math.max(0,maxSession-s);
-  $("clock").textContent=`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,"0")} · quedan ${Math.ceil(left)} s`;
-  $("cost").textContent=` · $${(s*PRICE_PER_SEC).toFixed(2)}`;
-  if(s>=maxSession) stop("Se acabó el tiempo de esta prueba.");
-}
-
 let applying=false;
 async function applyGarment(){
   if(!rt||applying) return;
-  applying=true; for(const c of allChips()) c.disabled=true; outfitBtn.disabled=true;
+  applying=true; document.querySelectorAll(".chip,#outfitBtn").forEach(c=>c.disabled=true);
   try{ const s=await garmentState(); await rt.set(s.image ? { prompt:s.prompt, enhance:false, image:s.image } : { prompt:s.prompt, enhance:false }); }
   catch(err){ console.error(err); status(errorText(err)); }
-  finally{ applying=false; for(const c of allChips()) c.disabled=false; outfitBtn.disabled=false; }
+  finally{ applying=false; document.querySelectorAll(".chip,#outfitBtn").forEach(c=>c.disabled=false); }
 }
-
 function cleanup(){
-  try{ rt?.disconnect(); }catch{}
-  rt=null;
+  const r=rt; rt=null; try{ r?.disconnect(); }catch{}
+  clearInterval(timer);
   camStream?.getTracks().forEach(t=>t.stop()); camStream=null;
   $("remoteVid").srcObject=null; $("remoteVid").hidden=true;
   $("localVid").srcObject=null; $("localVid").classList.remove("pip");
-  show("live",false); show("snap",false); show("stopBtn",false);
+  ["live","snap","stopBtn","flipBtn"].forEach(i=>show(i,false));
+  wakeLock?.release?.().catch(()=>{}); wakeLock=null;
 }
-function stop(msg){ cleanup(); status(msg||""); }
-
-$("stopBtn").onclick=()=>stop(`Prueba terminada: ${Math.round(seconds)} s, $${(seconds*PRICE_PER_SEC).toFixed(2)}.`);
-$("closeStudio").onclick=()=>{ cleanup(); status(""); show("setupPanel",false); show("consentPanel",false); $("studio").hidden=true; document.body.style.overflow=""; };
-$("openStudio").onclick=openStudio;
-$("snap").onclick=()=>{
+async function stop(msg){
+  cleanup(); status(msg||"");
+  try{ ({ user:me } = await api("/api/me")); renderAccount(); }catch{}
+}
+$("stopBtn").onclick=()=>stop("Prueba terminada. El tiempo que te quede sigue corriendo en tu pase actual.");
+$("flipBtn").onclick=()=>{ facing = facing==="user" ? "environment" : "user"; cleanup(); start(); };
+$("closeStudio").onclick=()=>{ cleanup(); status(""); show("consentPanel",false); $("studio").hidden=true; document.body.style.overflow=""; api("/api/me").then(d=>{ me=d.user; renderAccount(); }).catch(()=>{}); };
+$("snap").onclick=async()=>{
   const v=$("remoteVid"); if(!v.videoWidth) return;
   const c=document.createElement("canvas"); c.width=v.videoWidth; c.height=v.videoHeight; c.getContext("2d").drawImage(v,0,0);
-  const a=document.createElement("a"); a.download=`lana-norte-${current.id}.png`; a.href=c.toDataURL("image/png"); a.click();
+  const blob=await new Promise(r=>c.toBlob(r,"image/jpeg",.92));
+  const file=new File([blob],`probador-${current.id}.jpg`,{type:"image/jpeg"});
+  if(isPhone && navigator.canShare?.({files:[file]})){ try{ await navigator.share({files:[file], title:current.name}); return; }catch{} }
+  const a=document.createElement("a"); a.download=file.name; a.href=URL.createObjectURL(blob); a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
 };
-addEventListener("keydown",e=>{ if(e.key==="Escape" && !$("studio").hidden) $("closeStudio").click(); });
+document.addEventListener("visibilitychange",async()=>{ if(document.visibilityState==="visible" && rt && !wakeLock){ try{ wakeLock=await navigator.wakeLock?.request("screen"); }catch{} } });
+addEventListener("keydown",e=>{ if(e.key==="Escape"){ if(!$("studio").hidden) $("closeStudio").click(); document.querySelectorAll(".modal").forEach(m=>m.hidden=true); } });
 
-select(GARMENTS[0]);
+loadAll().catch(err=>{ $("pName").textContent="No se pudo cargar la tienda."; console.error(err); });
 </script>
 </body>
 </html>

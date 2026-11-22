@@ -23,8 +23,8 @@ function loadDb() {
   try { db = JSON.parse(fs.readFileSync(DB_FILE, "utf8")); } catch {}
   db.admin ??= null;
   db.settings ??= {};
-  db.settings.storeName ??= "lana/norte";
-  db.settings.decartKey ??= readLegacyKey();
+  if (!db.settings.storeName || db.settings.storeName === "lana/norte") db.settings.storeName = "Hamilton Mostrador";
+  db.settings.decartKey ||= process.env.DECART_API_KEY || readLegacyKey();
   db.settings.packages ??= [
     { id: "p050", price: 0.5, seconds: 15 },
     { id: "p100", price: 1, seconds: 35 },
@@ -177,8 +177,11 @@ const routes = {
     const { email, password } = await readBody(req);
     const e = String(email || "").trim().toLowerCase();
     if (!emailOk(e)) return send(res, 400, { error: "Escribe un correo válido." });
+    // en internet, define ADMIN_EMAIL para que nadie más pueda reclamar el panel
+    if (process.env.ADMIN_EMAIL && e !== process.env.ADMIN_EMAIL.trim().toLowerCase())
+      return send(res, 403, { error: "Ese correo no está autorizado como administrador." });
     if (String(password || "").length < 8) return send(res, 400, { error: "Usa una contraseña de al menos 8 caracteres." });
-    db.admin = { email: e, ...hashPw(password) }; save(); newSession(res, "admin", "admin");
+    db.admin ={ email: e, ...hashPw(password) }; save(); newSession(res, "admin", "admin");
     send(res, 200, { admin: e });
   },
   "POST /api/admin/login": async (req, res) => {
