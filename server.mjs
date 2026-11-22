@@ -248,6 +248,24 @@ const adminRoutes = {
     u.passes.push({ id: id(6), seconds: pkg.seconds, price: pkg.price, grantedAt: now(), startedAt: null, via: "manual" });
     save(); send(res, 200, { ok: true });
   },
+  "POST /api/admin/remove": async (req, res) => {
+    const { userId, seconds, all } = await readBody(req);
+    const u = db.users.find(x => x.id === userId);
+    if (!u) return send(res, 400, { error: "Cliente no válido." });
+    let left = all ? Infinity : Math.floor(Number(seconds));
+    if (!(left > 0)) return send(res, 400, { error: "Indica cuántos segundos quitar." });
+    // quita primero de los pases sin usar (los más nuevos), luego del que está en curso
+    const order = [...u.passes].reverse().sort((a, b) => (a.startedAt ? 1 : 0) - (b.startedAt ? 1 : 0));
+    for (const p of order) {
+      if (left <= 0) break;
+      const has = Math.floor(passLeft(p));
+      if (has <= 0) continue;
+      const cut = Math.min(has, left);
+      p.seconds -= cut; left -= cut;
+      p.removed = (p.removed || 0) + cut;
+    }
+    save(); send(res, 200, { ok: true, secondsLeft: Math.floor(userLeft(u)) });
+  },
   "POST /api/admin/product": async (req, res) => {
     const b = await readBody(req);
     let p = b.id ? db.products.find(x => x.id === b.id) : null;

@@ -47,6 +47,7 @@
   .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
   .stats .card{gap:2px}
   .preview{width:120px;height:120px;object-fit:contain;background:#f6f6f3;border-radius:12px}
+.btn.minus{color:#b42318;border-color:#f1c6c1}
 </style>
 </head>
 <body>
@@ -247,9 +248,20 @@ function renderUsers(){
       b.onclick=async()=>{ b.disabled=true; try{ await api("/api/admin/grant",{userId:u.id,packageId:p.id}); await refresh(); }catch(err){ alertBox(err.message); b.disabled=false; } };
       acts.append(b);
     }
+    if(u.secondsLeft>0){
+      const take=(label,body)=>{ const b=el("button",{className:"btn ghost minus",textContent:label});
+        b.onclick=async()=>{ b.disabled=true; try{ await api("/api/admin/remove",{userId:u.id,...body}); await refresh(); }catch(err){ alertBox(err.message); b.disabled=false; } };
+        acts.append(b); };
+      for(const n of [5,15]) if(u.secondsLeft>=n) take(`− ${n} s`,{seconds:n});
+      const all=el("button",{className:"btn ghost minus",textContent:"Quitar todo"});
+      all.onclick=async()=>{
+        if(all.dataset.sure!=="1"){ all.dataset.sure="1"; all.textContent=`¿Quitar ${u.secondsLeft} s?`; setTimeout(()=>{ all.dataset.sure=""; all.textContent="Quitar todo"; },4000); return; }
+        all.disabled=true; try{ await api("/api/admin/remove",{userId:u.id,all:true}); await refresh(); }catch(err){ alertBox(err.message); all.disabled=false; } };
+      acts.append(all);
+    }
     $("userList").append(el("div",{className:"card"},
       el("div",{className:"item"}, el("div",{className:"who"}, el("b",{textContent:u.email}), el("div",{className:"muted",textContent:`Desde ${when(u.createdAt)} · ${u.passes} pase(s)`})),
-        el("span",{className:"pill "+(u.secondsLeft>=10?"approved":"rejected"),textContent:u.secondsLeft>=10?`${u.secondsLeft} s disponibles`:"Sin tiempo"})),
+        el("span",{className:"pill "+(u.secondsLeft>=10?"approved":"rejected"),textContent:u.secondsLeft>=10?`${u.secondsLeft} s disponibles`:u.secondsLeft>0?`${u.secondsLeft} s (no alcanza)`:"Sin tiempo"})),
       acts));
   }
 }
