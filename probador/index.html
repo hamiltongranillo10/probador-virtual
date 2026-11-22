@@ -137,6 +137,8 @@
   .studio.vertical .studio-top{align-self:start;z-index:5;background:linear-gradient(rgba(0,0,0,.65),transparent);padding-bottom:28px}
   .studio.vertical .studio-bottom{align-self:end;z-index:5;background:linear-gradient(transparent,rgba(0,0,0,.75) 35%);padding-top:36px}
   .studio.vertical .live{top:calc(env(safe-area-inset-top) + 74px)}
+  .zoom{position:absolute;right:10px;top:42%;display:grid;gap:10px;z-index:6}
+  .zoom button{width:46px;height:46px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;font:700 26px/1 var(--body);backdrop-filter:blur(6px)}
   .studio.vertical .status{bottom:auto;top:42%}
   .studio.vertical .pip{inset:calc(env(safe-area-inset-top) + 74px) 10px auto auto!important;width:24%!important}
 </style>
@@ -237,6 +239,7 @@
     <div class="screen" id="screen">
       <video id="localVid" playsinline muted autoplay></video>
       <video id="remoteVid" playsinline muted autoplay hidden></video>
+      <div class="zoom" id="zoomCtl" hidden><button id="zoomIn" aria-label="Acercar">+</button><button id="zoomOut" aria-label="Alejar">−</button></div>
       <div class="live" id="live" hidden><i></i><span id="clock">0:00</span></div>
       <div class="status" id="status" hidden></div>
       <div class="panel" id="consentPanel" hidden>
@@ -424,21 +427,31 @@ const loadSdk=()=>sdk ? Promise.resolve(sdk) : (window.__sdkP ??= import(SDK_URL
 /* Decart genera video horizontal (1280x720). En celular vertical mandamos la cámara en una
    franja vertical en el centro del cuadro, con la forma de la pantalla, y mostramos solo esa
    franja a pantalla completa. */
+// zoom en vertical: 0 = cámara completa (con fondo difuminado), 1 = llena la pantalla
+let zoomLvl=.2;
+try{ const z=parseFloat(localStorage.getItem("probador-zoom")); if(z>=0&&z<=1) zoomLvl=z; }catch{}
 function verticalStream(src, W, H){
   const box=$("screen").getBoundingClientRect();
   const ar=Math.min(1, (box.width||innerWidth)/(box.height||innerHeight));
   const sw=Math.round(H*ar/2)*2, sx=Math.round((W-sw)/2);
   const c=document.createElement("canvas"); c.width=W; c.height=H;
   const x=c.getContext("2d",{alpha:false});
+  const tiny=document.createElement("canvas"); tiny.width=24; tiny.height=Math.round(24/ar);
+  const tx=tiny.getContext("2d");
   x.fillStyle="#7f7f7f"; x.fillRect(0,0,W,H);
   let on=true;
   const draw=()=>{
     if(!on) return;
     const vw=src.videoWidth, vh=src.videoHeight;
     if(vw&&vh){
-      // cámara vertical: llena la pantalla; cámara horizontal: entra completa (sin zoom)
-      const k=vw<vh ? Math.max(sw/vw,H/vh) : Math.min(sw/vw,H/vh), dw=vw*k, dh=vh*k;
+      const kIn=Math.min(sw/vw,H/vh), kOut=Math.max(sw/vw,H/vh);
+      const k=kIn*Math.pow(kOut/kIn, zoomLvl), dw=vw*k, dh=vh*k;
       x.save(); x.beginPath(); x.rect(sx,0,sw,H); x.clip();
+      if(dw<sw-1||dh<H-1){ // relleno: la misma cámara, muy difuminada
+        const kb=Math.max(tiny.width/vw,tiny.height/vh);
+        tx.drawImage(src,(tiny.width-vw*kb)/2,(tiny.height-vh*kb)/2,vw*kb,vh*kb);
+        x.imageSmoothingEnabled=true; x.drawImage(tiny,sx,0,sw,H);
+      }
       x.drawImage(src, sx+(sw-dw)/2, (H-dh)/2, dw, dh); x.restore();
     }
     src.requestVideoFrameCallback ? src.requestVideoFrameCallback(draw) : requestAnimationFrame(draw);
@@ -447,6 +460,9 @@ function verticalStream(src, W, H){
   const stream=c.captureStream(30);
   return { stream, sx, sw, W, stop(){ on=false; stream.getTracks().forEach(t=>t.stop()); } };
 }
+const setZoom=z=>{ zoomLvl=Math.max(0,Math.min(1,Math.round(z*100)/100)); try{ localStorage.setItem("probador-zoom",zoomLvl); }catch{} };
+$("zoomIn").onclick=()=>setZoom(zoomLvl+.2);
+$("zoomOut").onclick=()=>setZoom(zoomLvl-.2);
 const clientLog=(stage,error,info)=>{ try{ fetch("/api/client-log",{method:"POST",headers:{"Content-Type":"application/json"},
   body:JSON.stringify({stage,error:String(error?.name||"")+": "+String(error?.message||error||""),info})}).catch(()=>{}); }catch{} };
 const status = t => { $("status").textContent=t||""; $("status").hidden=!t; };
@@ -500,6 +516,7 @@ async function getCamera(portrait, simple){
 
 async function start(){
   try{
+    const t0=Date.now();
     status("Pidiendo permiso para usar la cámara…");
     vertical = isPhone && innerHeight>innerWidth;
     $("studio").classList.toggle("vertical", vertical);
@@ -527,7 +544,7 @@ async function start(){
     rt=await client.realtime.connect(compose ? compose.stream : camStream,{
       model, mirror: facing==="user",
       initialState: st0.image ? { prompt:{ text:st0.prompt, enhance:false }, image:st0.image } : { prompt:{ text:st0.prompt, enhance:false } },
-      onRemoteStream: st=>{ const rv=$("remoteVid"); rv.srcObject=st; rv.hidden=false; rv.play().catch(()=>{}); lv.classList.add("pip"); },
+      onRemoteStream: st=>{ clientLog("conectado","",`${Date.now()-t0} ms | pantalla ${innerWidth}x${innerHeight} camara ${vs.width}x${vs.height} zoom=${zoomLvl}`); const rv=$("remoteVid"); rv.srcObject=st; rv.hidden=false; rv.play().catch(()=>{}); lv.classList.add("pip"); },
     });
     rt.on("connectionChange", s=>{
       if(s==="generating"||s==="connected") live(true);
@@ -549,7 +566,7 @@ async function start(){
   }
 }
 function live(on){
-  if(on){ status(""); show("live",true); show("snap",true); show("stopBtn",true); show("flipBtn",isPhone);
+  if(on){ status(""); show("live",true); show("snap",true); show("stopBtn",true); show("flipBtn",isPhone); show("zoomCtl",!!compose);
     clearInterval(timer); timer=setInterval(tick,250); tick(); }
 }
 function tick(){
@@ -584,7 +601,7 @@ function cleanup(){
   camStream?.getTracks().forEach(t=>t.stop()); camStream=null;
   $("remoteVid").srcObject=null; $("remoteVid").hidden=true;
   $("localVid").srcObject=null; $("localVid").classList.remove("pip");
-  ["live","snap","stopBtn","flipBtn"].forEach(i=>show(i,false));
+  ["live","snap","stopBtn","flipBtn","zoomCtl"].forEach(i=>show(i,false));
   wakeLock?.release?.().catch(()=>{}); wakeLock=null;
 }
 async function stop(msg){
