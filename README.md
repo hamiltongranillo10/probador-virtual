@@ -29,7 +29,24 @@ Los navegadores de celular **solo dan acceso a la cámara en sitios con `https:/
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/hamiltongranillo10/probador-virtual)
 
-El archivo `render.yaml` ya trae todo configurado: plan Starter (unos $7 USD al mes) y un disco de 1 GB para los datos (unos $0.25 USD al mes). Render solo te pide escribir tu correo en `ADMIN_EMAIL`. Al terminar te da una dirección `https://...onrender.com`: entra a `/panel`, crea tu administrador con ese correo y pon la clave de Decart en Ajustes.
+El archivo `render.yaml` usa el **plan gratis**. Render te pide dos datos: tu correo en `ADMIN_EMAIL` y tu clave de Decart en `DECART_API_KEY`. Al terminar te da una dirección `https://...onrender.com`: entra a `/panel` y crea tu administrador con ese correo.
+
+Límites del plan gratis:
+
+- Se duerme después de 15 minutos sin visitas; la siguiente visita tarda cerca de un minuto en cargar.
+- No tiene disco: **al reiniciarse se borran clientes, pagos, el administrador y los cambios de productos**. La clave de Decart no se pierde porque está en `DECART_API_KEY`.
+
+Para usarlo con clientes reales, cambia en `render.yaml` a `plan: starter` (unos $7 USD al mes) y agrega un disco (unos $0.25 USD al mes):
+
+```yaml
+      - key: DATA_DIR
+        value: /var/data
+    disk:
+      name: datos
+      mountPath: /var/data
+      sizeGB: 1
+```
+
 
 Variables de entorno al publicar:
 

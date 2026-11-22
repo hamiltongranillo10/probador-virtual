@@ -1,21 +1,20 @@
+# Plan gratis de Render: sin disco. Los clientes, pagos y cambios del panel
+# se borran cuando el servicio se reinicia. Para guardarlos, cambia a
+# "plan: starter" y agrega el disco (ver README).
 services:
   - type: web
     name: hamilton-mostrador
     runtime: node
-    plan: starter
+    plan: free
     buildCommand: echo "sin dependencias"
     startCommand: node server.mjs
     healthCheckPath: /api/public
     envVars:
       - key: HOST
         value: 0.0.0.0
-      - key: DATA_DIR
-        value: /var/data
       - key: COOKIE_SECURE
         value: "1"
       - key: ADMIN_EMAIL
         sync: false
-    disk:
-      name: datos
-      mountPath: /var/data
-      sizeGB: 1
+      - key: DECART_API_KEY
+        sync: false
