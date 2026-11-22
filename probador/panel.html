@@ -106,7 +106,7 @@
         <div class="grid2">
           <label>Nombre corto (botón del probador) <input id="pfShort" maxlength="24"></label>
           <label>Parte del cuerpo
-            <select id="pfPart"><option value="top">Arriba (camisetas, chaquetas, sudaderas)</option><option value="bottom">Abajo (pantalones, calentadores, shorts)</option></select></label>
+            <select id="pfPart"><option value="top">Arriba (camisetas, chaquetas, sudaderas)</option><option value="bottom">Abajo (pantalones, calentadores, shorts)</option><option value="full">Completo (vestidos, enterizos)</option></select></label>
         </div>
         <label>Categoría <input id="pfCat" placeholder="Ej.: Chaquetas / Deportivas" maxlength="60"></label>
         <div class="grid2">
@@ -278,7 +278,7 @@ function renderProducts(){
       try{ await api("/api/admin/product-delete",{id:p.id}); await refresh(); }catch(err){ alertBox(err.message); }
     };
     $("prodList").append(el("div",{className:"card prod"}, el("img",{src:"/"+p.src,alt:""}),
-      el("div",{className:"who"}, el("b",{textContent:p.name}), el("div",{className:"muted",textContent:`${money(p.price)} · ${p.part==="bottom"?"Abajo":"Arriba"} · ${p.cat||"Sin categoría"}`})),
+      el("div",{className:"who"}, el("b",{textContent:p.name}), el("div",{className:"muted",textContent:`${money(p.price)} · ${p.part==="bottom"?"Abajo":p.part==="full"?"Completo":"Arriba"} · ${p.cat||"Sin categoría"}`})),
       el("div",{className:"actions"},ed,del)));
   }
 }

@@ -274,7 +274,7 @@ const adminRoutes = {
     if (b.id && !p) return send(res, 404, { error: "Producto no encontrado." });
     if (!p) { if (!b.imageData) return send(res, 400, { error: "Sube una foto de la prenda." }); p = { id: id(5) }; db.products.push(p); }
     try { if (b.imageData) p.src = saveImage(b.imageData); } catch (e) { return send(res, 400, { error: e.message }); }
-    p.part = b.part === "bottom" ? "bottom" : "top";
+    p.part = ["bottom", "full"].includes(b.part) ? b.part : "top";
     p.name = String(b.name || "").trim().slice(0, 120) || "Prenda";
     p.short = String(b.short || "").trim().slice(0, 24) || p.name.split(" ")[0];
     p.cat = String(b.cat || "").trim().slice(0, 60);

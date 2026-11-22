@@ -134,6 +134,8 @@
   .studio.vertical .stage{padding:0}
   .studio.vertical .screen{border-radius:0;background:#000}
   .studio.vertical .screen video{object-fit:cover}
+  .studio.vertical #localVid:not(.pip){object-fit:contain}
+  .studio.vertical .screen video.fitw{inset:auto;left:var(--fl);top:50%;width:var(--fw);height:auto;aspect-ratio:16/9;transform:translateY(-50%);object-fit:fill}
   .studio.vertical .studio-top{align-self:start;z-index:5;background:linear-gradient(rgba(0,0,0,.65),transparent);padding-bottom:28px}
   .studio.vertical .studio-bottom{align-self:end;z-index:5;background:linear-gradient(transparent,rgba(0,0,0,.75) 35%);padding-top:36px}
   .studio.vertical .live{top:calc(env(safe-area-inset-top) + 74px)}
@@ -270,8 +272,8 @@ const api = async (path, body) => {
   if(!r.ok) throw Object.assign(new Error(data.error || "Algo falló. Intenta de nuevo."), { status:r.status });
   return data;
 };
-const PREFIX = { top:"Substitute the upper body garment with ", bottom:"Substitute the lower body garment with " };
-const HINT = { top:"De frente, con buena luz, de la cintura para arriba.", bottom:"Aléjate hasta que se vea tu cuerpo completo.", outfit:"Aléjate hasta que se vea tu cuerpo completo." };
+const PREFIX = { top:"Substitute the upper body garment with ", bottom:"Substitute the lower body garment with ", full:"Substitute the outfit with " };
+const HINT = { top:"De frente, con buena luz, de la cintura para arriba.", bottom:"Aléjate hasta que se vea tu cuerpo completo.", outfit:"Aléjate hasta que se vea tu cuerpo completo.", full:"Aléjate hasta que se vea tu cuerpo completo." };
 const isPhone = matchMedia("(pointer:coarse)").matches;
 
 let pub = { products:[], packages:[] }, me = null, GARMENTS = [], current = null, mode = "single";
@@ -422,10 +424,13 @@ const SDK_URL="https://cdn.jsdelivr.net/npm/@decartai/sdk@0.2.14/+esm";
 const loadSdk=()=>sdk ? Promise.resolve(sdk) : (window.__sdkP ??= import(SDK_URL).then(m=>sdk=m).catch(e=>{ window.__sdkP=null; throw e; }));
 
 /* Decart genera video horizontal (1280x720). En celular vertical mandamos la cámara
-   centrada en un cuadro horizontal y mostramos solo esa franja central, a pantalla completa. */
+   COMPLETA (sin recortar) en una franja central del cuadro y mostramos solo esa franja,
+   a todo el ancho de la pantalla. Así no hay acercamiento. */
 function verticalStream(src, W, H){
   const box=$("screen").getBoundingClientRect();
-  const ar=Math.min(1, (box.width||innerWidth)/(box.height||innerHeight));
+  const scr=(box.width||innerWidth)/(box.height||innerHeight);
+  const cam=(src.videoWidth&&src.videoHeight) ? src.videoWidth/src.videoHeight : .5625;
+  const ar=Math.min(1, Math.max(scr, cam));
   const sw=Math.round(H*ar/2)*2, sx=Math.round((W-sw)/2);
   const c=document.createElement("canvas"); c.width=W; c.height=H;
   const x=c.getContext("2d",{alpha:false});
@@ -435,15 +440,17 @@ function verticalStream(src, W, H){
     if(!on) return;
     const vw=src.videoWidth, vh=src.videoHeight;
     if(vw&&vh){
-      const k=Math.max(sw/vw,H/vh), dw=vw*k, dh=vh*k;
-      x.save(); x.beginPath(); x.rect(sx,0,sw,H); x.clip();
-      x.drawImage(src, sx+(sw-dw)/2, (H-dh)/2, dw, dh); x.restore();
+      const k=Math.min(sw/vw,H/vh), dw=vw*k, dh=vh*k; // contain: se ve la cámara entera
+      x.drawImage(src, sx+(sw-dw)/2, (H-dh)/2, dw, dh);
     }
     src.requestVideoFrameCallback ? src.requestVideoFrameCallback(draw) : requestAnimationFrame(draw);
   };
   draw();
   const stream=c.captureStream(30);
-  return { stream, sx, sw, W, stop(){ on=false; stream.getTracks().forEach(t=>t.stop()); } };
+  // la franja ocupa todo el ancho; si sobra alto, queda centrada
+  const rv=$("remoteVid"), fw=W/sw*100;
+  rv.classList.add("fitw"); rv.style.setProperty("--fw", fw+"%"); rv.style.setProperty("--fl", (-(fw-100)/2)+"%");
+  return { stream, sx, sw, W, stop(){ on=false; stream.getTracks().forEach(t=>t.stop()); rv.classList.remove("fitw"); } };
 }
 const status = t => { $("status").textContent=t||""; $("status").hidden=!t; };
 const show = (id,on) => { $(id).hidden=!on; };
