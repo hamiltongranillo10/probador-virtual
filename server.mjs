@@ -9,7 +9,8 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const STATIC = path.join(ROOT, "probador");
-const DATA = path.join(ROOT, "data");
+const DATA = process.env.DATA_DIR || path.join(ROOT, "data");
+const SECURE = process.env.COOKIE_SECURE === "1" ? "; Secure" : "";
 const UPLOADS = path.join(DATA, "uploads");
 const DB_FILE = path.join(DATA, "db.json");
 const PORT = Number(process.env.PORT || 5180);
@@ -71,7 +72,7 @@ function newSession(res, kind, uid) {
   const token = id(24);
   db.sessions[token] = { kind, uid, exp: now() + 30 * 864e5 };
   save();
-  res.setHeader("Set-Cookie", `${kind === "admin" ? "aid" : "sid"}=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${30 * 86400}`);
+  res.setHeader("Set-Cookie", `${kind === "admin" ? "aid" : "sid"}=${token}; HttpOnly; SameSite=Lax; Path=/${SECURE}; Max-Age=${30 * 86400}`);
 }
 function sessionOf(req, kind) {
   const t = cookies(req)[kind === "admin" ? "aid" : "sid"];
@@ -142,7 +143,7 @@ const routes = {
   },
   "POST /api/logout": (req, res) => {
     const s = sessionOf(req, "user"); if (s) { delete db.sessions[s.token]; save(); }
-    res.setHeader("Set-Cookie", "sid=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0"); send(res, 200, { ok: true });
+    res.setHeader("Set-Cookie", `sid=; HttpOnly; SameSite=Lax; Path=/${SECURE}; Max-Age=0`); send(res, 200, { ok: true });
   },
 
   // el cliente avisa que pagó (o va a pagar por WhatsApp); el admin lo habilita
@@ -192,7 +193,7 @@ const routes = {
   },
   "POST /api/admin/logout": (req, res) => {
     const s = sessionOf(req, "admin"); if (s) { delete db.sessions[s.token]; save(); }
-    res.setHeader("Set-Cookie", "aid=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0"); send(res, 200, { ok: true });
+    res.setHeader("Set-Cookie", `aid=; HttpOnly; SameSite=Lax; Path=/${SECURE}; Max-Age=0`); send(res, 200, { ok: true });
   },
 };
 const adminRoutes = {

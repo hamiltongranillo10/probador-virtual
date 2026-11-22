@@ -23,7 +23,13 @@ node server.mjs
 
 ## Celular
 
-Los navegadores de celular **solo dan acceso a la cámara en sitios con `https://`**. Para usarlo en el celular, publícalo en un servicio con HTTPS, como Render, Railway o un VPS con certificado.
+Los navegadores de celular **solo dan acceso a la cámara en sitios con `https://`**. Para usarlo en el celular, publícalo en un servicio con HTTPS.
+
+### Publicar en Render (recomendado)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/hamiltongranillo10/probador-virtual)
+
+El archivo `render.yaml` ya trae todo configurado: plan Starter (unos $7 USD al mes) y un disco de 1 GB para los datos (unos $0.25 USD al mes). Render solo te pide escribir tu correo en `ADMIN_EMAIL`. Al terminar te da una dirección `https://...onrender.com`: entra a `/panel`, crea tu administrador con ese correo y pon la clave de Decart en Ajustes.
 
 Variables de entorno al publicar:
 
@@ -33,6 +39,8 @@ Variables de entorno al publicar:
 | `PORT` | Lo pone el servicio de hosting |
 | `ADMIN_EMAIL` | Tu correo: solo ese correo puede crear la cuenta del panel |
 | `DECART_API_KEY` | Opcional: clave inicial. También se puede poner o cambiar desde el panel |
+| `DATA_DIR` | Carpeta de datos (por defecto `data/`). En Render apunta al disco persistente |
+| `COOKIE_SECURE=1` | Cookies solo por https |
 
 Los datos (clientes, pagos, productos, ajustes y fotos subidas) se guardan en la carpeta `data/`. En el hosting, esa carpeta tiene que estar en un **disco persistente**; si no, se borran en cada reinicio.
 
