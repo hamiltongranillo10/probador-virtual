@@ -125,6 +125,14 @@ const routes = {
     storeName: db.settings.storeName, products: db.products, packages: db.settings.packages,
     whatsapp: db.settings.whatsapp, bank: db.settings.bank, available: !!db.settings.decartKey, model: MODEL }),
 
+  // errores del probador en el celular (sin datos personales), para verlos en los logs de Render
+  "POST /api/client-log": async (req, res) => {
+    const b = await readBody(req, 4000).catch(() => ({}));
+    const clean = v => String(v ?? "").replace(/\s+/g, " ").slice(0, 300);
+    console.log("[probador]", clean(b.stage), "|", clean(b.error), "|", clean(b.info), "|", clean(req.headers["user-agent"]));
+    send(res, 200, { ok: true });
+  },
+
   "GET /api/me": (req, res) => send(res, 200, { user: publicUser(currentUser(req)) }),
 
   "POST /api/register": async (req, res) => {
