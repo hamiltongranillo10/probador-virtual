@@ -423,14 +423,13 @@ let vertical=false, compose=null;
 const SDK_URL="https://cdn.jsdelivr.net/npm/@decartai/sdk@0.2.14/+esm";
 const loadSdk=()=>sdk ? Promise.resolve(sdk) : (window.__sdkP ??= import(SDK_URL).then(m=>sdk=m).catch(e=>{ window.__sdkP=null; throw e; }));
 
-/* Decart genera video horizontal (1280x720). En celular vertical mandamos la cámara
-   COMPLETA (sin recortar) en una franja central del cuadro y mostramos solo esa franja,
-   a todo el ancho de la pantalla. Así no hay acercamiento. */
+/* Decart genera video horizontal (1280x720). En celular vertical mandamos la cámara en una
+   franja vertical (9:16) en el centro del cuadro y mostramos solo esa franja, a todo el ancho
+   de la pantalla y casi todo el alto. */
 function verticalStream(src, W, H){
   const box=$("screen").getBoundingClientRect();
   const scr=(box.width||innerWidth)/(box.height||innerHeight);
-  const cam=(src.videoWidth&&src.videoHeight) ? src.videoWidth/src.videoHeight : .5625;
-  const ar=Math.min(1, Math.max(scr, cam));
+  const ar=Math.min(1, Math.max(scr, 9/16));
   const sw=Math.round(H*ar/2)*2, sx=Math.round((W-sw)/2);
   const c=document.createElement("canvas"); c.width=W; c.height=H;
   const x=c.getContext("2d",{alpha:false});
@@ -440,14 +439,15 @@ function verticalStream(src, W, H){
     if(!on) return;
     const vw=src.videoWidth, vh=src.videoHeight;
     if(vw&&vh){
-      const k=Math.min(sw/vw,H/vh), dw=vw*k, dh=vh*k; // contain: se ve la cámara entera
-      x.drawImage(src, sx+(sw-dw)/2, (H-dh)/2, dw, dh);
+      // cámara vertical: llena la franja; cámara horizontal: entra completa (sin zoom)
+      const k=vw<vh ? Math.max(sw/vw,H/vh) : Math.min(sw/vw,H/vh), dw=vw*k, dh=vh*k;
+      x.save(); x.beginPath(); x.rect(sx,0,sw,H); x.clip();
+      x.drawImage(src, sx+(sw-dw)/2, (H-dh)/2, dw, dh); x.restore();
     }
     src.requestVideoFrameCallback ? src.requestVideoFrameCallback(draw) : requestAnimationFrame(draw);
   };
   draw();
   const stream=c.captureStream(30);
-  // la franja ocupa todo el ancho; si sobra alto, queda centrada
   const rv=$("remoteVid"), fw=W/sw*100;
   rv.classList.add("fitw"); rv.style.setProperty("--fw", fw+"%"); rv.style.setProperty("--fl", (-(fw-100)/2)+"%");
   return { stream, sx, sw, W, stop(){ on=false; stream.getTracks().forEach(t=>t.stop()); rv.classList.remove("fitw"); } };
@@ -463,6 +463,7 @@ async function openStudio(){
   if(me.secondsLeft<10) return openPay();
   $("studio").hidden=false; document.body.style.overflow="hidden";
   select(current); refreshPressed();
+  setTimeout(()=>GARMENTS.forEach(g=>garmentBlob(g).catch(()=>{})),0);
   if(!window.isSecureContext || !navigator.mediaDevices?.getUserMedia){
     status("Para usar la cámara, abre la tienda con https:// (dirección segura)."); return; }
   if(!consented){ show("consentPanel",true); return; }
@@ -477,11 +478,11 @@ async function garmentBlob(g){
   if(blobCache.has(g.src)) return blobCache.get(g.src);
   const img=new Image(); img.src=g.src; await img.decode();
   const pad=Math.round(Math.max(img.width,img.height)*.06), size=Math.max(img.width,img.height)+pad*2;
-  const c=document.createElement("canvas"); c.width=c.height=Math.min(size,1400);
+  const c=document.createElement("canvas"); c.width=c.height=Math.min(size,768);
   const k=c.width/size, x=c.getContext("2d");
   x.fillStyle="#fff"; x.fillRect(0,0,c.width,c.height);
   x.drawImage(img,(size-img.width)/2*k,(size-img.height)/2*k,img.width*k,img.height*k);
-  const blob=await new Promise(r=>c.toBlob(r,"image/jpeg",.92));
+  const blob=await new Promise(r=>c.toBlob(r,"image/jpeg",.85));
   blobCache.set(g.src,blob); return blob;
 }
 async function garmentState(){
@@ -491,27 +492,29 @@ async function garmentState(){
 }
 
 async function getCamera(portrait){
-  // en celular vertical pedimos la cámara en vertical; si el modelo no la acepta, se reintenta en horizontal
-  const w=model.width||1280, h=model.height||720;
-  return navigator.mediaDevices.getUserMedia({ audio:false, video:{
+  const w=1280, h=720;
+  const st=await navigator.mediaDevices.getUserMedia({ audio:false, video:{
     facingMode: isPhone ? { ideal:facing } : "user",
-    width:{ ideal: portrait?h:w }, height:{ ideal: portrait?w:h }, frameRate:{ ideal:30, max:30 } } });
+    width:{ ideal: portrait?h:w }, height:{ ideal: portrait?w:h },
+    aspectRatio:{ ideal: portrait?h/w:w/h }, frameRate:{ ideal:30, max:30 } } });
+  // algunos celulares abren la cámara con zoom: lo dejamos al mínimo
+  try{ const t=st.getVideoTracks()[0], z=t.getCapabilities?.().zoom;
+    if(z && t.getSettings().zoom>z.min) await t.applyConstraints({ advanced:[{ zoom:z.min }] }); }catch{}
+  return st;
 }
 
 async function start(){
   try{
-    status("Cargando el probador…");
-    await loadSdk();
+    status("Pidiendo permiso para usar la cámara…");
+    vertical = isPhone && innerHeight>innerWidth;
+    $("studio").classList.toggle("vertical", vertical);
+    const sdkP=loadSdk();
+    camStream=await getCamera(vertical);
+    await sdkP;
     model=sdk.models.realtime("lucy-vton-3.6");
     client ??= sdk.createDecartClient({ apiKeyProvider: async()=>{
       const d=await api("/api/realtime-token",{});
       endAt=Date.now()+d.secondsLeft*1000; return d.apiKey; } });
-
-    status("Pidiendo permiso para usar la cámara…");
-    vertical = isPhone && innerHeight>innerWidth;
-    $("studio").classList.toggle("vertical", vertical);
-    const portrait = vertical && !portraitTried;
-    camStream=await getCamera(portrait);
     const lv=$("localVid"); lv.classList.remove("pip"); lv.classList.toggle("mirror", facing==="user"); lv.hidden=false; lv.srcObject=camStream; lv.play().catch(()=>{});
     if(vertical){
       await new Promise(r=> lv.readyState>=2 ? r() : lv.addEventListener("loadeddata",r,{once:true}));
@@ -538,7 +541,7 @@ async function start(){
     try{ wakeLock = await navigator.wakeLock?.request("screen"); }catch{}
   }catch(err){
     console.error(err);
-    const wasPortrait = isPhone && innerHeight>innerWidth && !portraitTried;
+    const wasPortrait = false; // en vertical la cámara ya se adapta al modelo
     cleanup();
     if(wasPortrait && err?.status!==402 && err?.status!==401 && err?.name!=="NotAllowedError"){ portraitTried=true; return start(); }
     status(errorText(err));
@@ -598,7 +601,7 @@ $("snap").onclick=async()=>{
     const k=v.videoWidth/compose.W, sx=compose.sx*k, sw=compose.sw*k;
     c.width=Math.round(sw); c.height=v.videoHeight; c.getContext("2d").drawImage(v,sx,0,sw,v.videoHeight,0,0,c.width,c.height);
   } else { c.width=v.videoWidth; c.height=v.videoHeight; c.getContext("2d").drawImage(v,0,0); }
-  const blob=await new Promise(r=>c.toBlob(r,"image/jpeg",.92));
+  const blob=await new Promise(r=>c.toBlob(r,"image/jpeg",.85));
   const file=new File([blob],`probador-${current.id}.jpg`,{type:"image/jpeg"});
   if(isPhone && navigator.canShare?.({files:[file]})){ try{ await navigator.share({files:[file], title:current.name}); return; }catch{} }
   const a=document.createElement("a"); a.download=file.name; a.href=URL.createObjectURL(blob); a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
